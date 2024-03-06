@@ -3,10 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    
+    <title>Registro de Estudiantes</title>
 </head>
 <body>
-    <h1>Test HTML</h1>    
+    <h1>Registro de Estudiantes</h1>
+    
+    <!-- Formulario de registro de estudiantes -->
+    <form id="studentForm">
+        <label for="firstName">Nombre:</label>
+        <input type="text" id="firstName" name="firstName" required><br><br>
+        
+        <label for="lastName">Apellido:</label>
+        <input type="text" id="lastName" name="lastName" required><br><br>
+        
+        <label for="age">Edad:</label>
+        <input type="number" id="age" name="age" required><br><br>
+        
+        <button type="submit">Registrar Estudiante</button>
+    </form>
+    
+    <hr>
+    
+    <!-- Lista de estudiantes -->
+    <h2>Lista de Estudiantes</h2>
+    <ul id="studentList"></ul>
+    
+    <!-- Botón para actualizar la lista de estudiantes -->
+    <button id="refreshButton">Actualizar Lista de Estudiantes</button>
+    
+    <!-- Script para manejar la lógica de la aplicación -->
+    <script>
+        // Función para cargar la lista de estudiantes al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarListaEstudiantes();
+        });
+        
+        // Función para cargar la lista de estudiantes desde el servicio REST
+        function cargarListaEstudiantes() {
+            fetch('https://pje4h805t4.execute-api.us-west-2.amazonaws.com/dev/students')
+            .then(response => response.json())
+            .then(data => {
+                const studentList = document.getElementById('studentList');
+                studentList.innerHTML = ''; // Limpiar la lista antes de agregar elementos
+                
+                // Iterar sobre los datos y agregar cada estudiante a la lista
+                data.forEach(student => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${student.firstName} ${student.lastName}, ${student.age} años`;
+                    studentList.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error al cargar la lista de estudiantes:', error);
+                alert('Error al cargar la lista de estudiantes. Por favor, inténtalo de nuevo.');
+            });
+        }
+        
+        // Manejar el envío del formulario para crear un nuevo estudiante
+        document.getElementById('studentForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evitar que el formulario se envíe automáticamente
+            
+            // Obtener los datos del formulario
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const age = document.getElementById('age').value;
+            
+            // Crear un objeto con los datos del estudiante
+            const newStudent = {
+                firstName: firstName,
+                lastName: lastName,
+                age: age
+            };
+            
+            // Enviar una solicitud POST para crear un nuevo estudiante
+            fetch('https://pje4h805t4.execute-api.us-west-2.amazonaws.com/dev/students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newStudent)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Estudiante registrado correctamente.');
+                    cargarListaEstudiantes(); // Actualizar la lista después de registrar un nuevo estudiante
+                } else {
+                    console.error('Error al registrar estudiante:', response.statusText);
+                    alert('Error al registrar estudiante. Por favor, inténtalo de nuevo.');
+                }
+            })
+            .catch(error => {
+                console.error('Error al registrar estudiante:', error);
+                alert('Error al registrar estudiante. Por favor, inténtalo de nuevo.');
+            });
+        });
+        
+        // Manejar el clic en el botón para actualizar la lista de estudiantes
+        document.getElementById('refreshButton').addEventListener('click', function() {
+            cargarListaEstudiantes();
+        });
+    </script>
 </body>
 </html>
